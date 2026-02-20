@@ -231,7 +231,7 @@ function QuickLaunch() {
               value={newSite.icon}
               onChange={(e) => setNewSite({ ...newSite, icon: e.target.value })}
               className="px-4 py-2 rounded-lg bg-bison-card border-2 border-gray-600 text-white placeholder-gray-500"
-              maxLength="2"
+              maxLength="10"
             />
             <button
               onClick={addSite}
