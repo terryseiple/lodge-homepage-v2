@@ -1,100 +1,49 @@
 import { useState, useEffect } from 'react';
 
-const WEATHER_CONFIG = {
-  apiUrl: 'https://swd.weatherflow.com/swd/rest',
-  stationId: process.env.VITE_WEATHERFLOW_STATION_ID || null,
-  token: process.env.VITE_WEATHERFLOW_TOKEN || null,
-  refreshInterval: 5 * 60 * 1000, // 5 minutes
-  fallbackData: {
-    temperature: null,
-    humidity: null,
-    pressure: null,
-    windSpeed: null,
-    conditions: 'unavailable'
-  }
-};
+const HA_API_URL = 'http://10.0.102.10:8123/api/states/sensor.the_lodge_sensors_temperature';
+const HA_TOKEN = null; // Set if you have a long-lived access token
 
 export const useWeather = () => {
-  const [weather, setWeather] = useState(WEATHER_CONFIG.fallbackData);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [lastUpdate, setLastUpdate] = useState(null);
-
-  const fetchWeather = async () => {
-    if (!WEATHER_CONFIG.stationId || !WEATHER_CONFIG.token) {
-      setError('WeatherFlow credentials not configured');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${WEATHER_CONFIG.apiUrl}/observations/station/${WEATHER_CONFIG.stationId}?token=${WEATHER_CONFIG.token}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.obs && data.obs.length > 0) {
-        const latest = data.obs[0];
-        setWeather({
-          temperature: latest.air_temperature,
-          humidity: latest.relative_humidity,
-          pressure: latest.station_pressure,
-          windSpeed: latest.wind_avg,
-          windGust: latest.wind_gust,
-          conditions: getConditions(latest),
-          timestamp: latest.timestamp
-        });
-        setLastUpdate(new Date());
-        setError(null);
-      }
-      
-      setLoading(false);
-    } catch (err) {
-      console.warn('Weather fetch failed:', err);
-      setError(err.message);
-      setLoading(false);
-      
-      // Keep last known data if available
-      if (weather.temperature !== null) {
-        console.log('Using cached weather data');
-      }
-    }
-  };
-
-  const getConditions = (obs) => {
-    if (obs.precip_type > 0) return 'rainy';
-    if (obs.wind_avg > 15) return 'windy';
-    if (obs.solar_radiation > 800) return 'sunny';
-    if (obs.solar_radiation < 100) return 'cloudy';
-    return 'clear';
-  };
+  const [weatherData, setWeatherData] = useState({
+    temperature: null,
+    conditions: null,
+    available: false
+  });
 
   useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        const headers = {};
+        if (HA_TOKEN) {
+          headers['Authorization'] = `Bearer ${HA_TOKEN}`;
+        }
+
+        const response = await fetch(HA_API_URL, { headers });
+        const data = await response.json();
+        
+        if (data && data.state) {
+          setWeatherData({
+            temperature: parseFloat(data.state),
+            conditions: data.attributes?.friendly_name || 'Outside',
+            available: true
+          });
+        } else {
+          setWeatherData(prev => ({ ...prev, available: false }));
+        }
+      } catch (error) {
+        console.warn('Weather API fetch error:', error);
+        setWeatherData(prev => ({ ...prev, available: false }));
+      }
+    };
+
+    // Initial fetch
     fetchWeather();
     
-    const interval = setInterval(() => {
-      fetchWeather();
-    }, WEATHER_CONFIG.refreshInterval);
+    // Update every 5 minutes (weather doesn't change that fast)
+    const interval = setInterval(fetchWeather, 300000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const refresh = () => {
-    setLoading(true);
-    fetchWeather();
-  };
-
-  return {
-    weather,
-    loading,
-    error,
-    lastUpdate,
-    refresh,
-    available: weather.temperature !== null
-  };
+  return weatherData;
 };

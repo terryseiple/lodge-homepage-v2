@@ -2,28 +2,22 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-    "../lodge-shared/components/**/*.{js,jsx}"
+    "./src/**/*.{js,jsx}"
   ],
   theme: {
     extend: {
       colors: {
-        // Lodge theme colors
-        'lodge-green': '#10b981',
-        'lodge-blue': '#3b82f6',
-        'lodge-purple': '#8b5cf6',
-        'obsidian': '#02040a',
-        'bg-secondary': '#060b14',
-        'bg-tertiary': '#0f172a',
-        'bg-hover': '#1e293b',
-      },
-      fontFamily: {
-        mono: ['monospace'],
+        'bison-yellow': '#FFC72C',
+        'bison-green': '#006341',
+        'bison-gold': '#FFD700',
+        'bison-dark': '#0f0f0f',
+        'bison-bg': '#0a4d2e',
+        'bison-card': '#1a1a1a',
+        'bison-border': '#333333',
       },
       boxShadow: {
-        'glow-green': '0 0 8px #10b981',
-        'glow-blue': '0 0 8px #3b82f6',
-        'glow-red': '0 0 8px #ef4444',
+        'bison': '0 0 20px rgba(255, 199, 44, 0.3)',
+        'bison-green': '0 0 20px rgba(0, 99, 65, 0.3)',
       }
     },
   },

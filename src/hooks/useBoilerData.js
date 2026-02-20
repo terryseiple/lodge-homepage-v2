@@ -1,54 +1,50 @@
 import { useState, useEffect } from 'react';
-import { useHomeAssistant } from './useHomeAssistant';
 
-const BOILER_ENTITIES = {
-  temperature: 'sensor.boiler_temperature',
-  pressure: 'sensor.boiler_pressure',
-  status: 'binary_sensor.boiler_status',
-  setpoint: 'climate.boiler_thermostat'
-};
+const BOILER_API_URL = 'http://10.0.101.98:5000/';
 
 export const useBoilerData = () => {
-  const { connected, getEntity } = useHomeAssistant(Object.values(BOILER_ENTITIES));
   const [boilerData, setBoilerData] = useState({
     temperature: null,
-    pressure: null,
     status: 'unknown',
-    setpoint: null,
-    available: false
+    available: false,
+    bottomAir: null,
+    topAir: null,
+    o2: null
   });
 
   useEffect(() => {
-    if (!connected) {
-      setBoilerData(prev => ({ ...prev, available: false }));
-      return;
-    }
-
-    const updateBoilerData = () => {
-      const tempEntity = getEntity(BOILER_ENTITIES.temperature);
-      const pressureEntity = getEntity(BOILER_ENTITIES.pressure);
-      const statusEntity = getEntity(BOILER_ENTITIES.status);
-      const setpointEntity = getEntity(BOILER_ENTITIES.setpoint);
-
-      setBoilerData({
-        temperature: tempEntity?.state ? parseFloat(tempEntity.state) : null,
-        pressure: pressureEntity?.state ? parseFloat(pressureEntity.state) : null,
-        status: statusEntity?.state === 'on' ? 'running' : 'idle',
-        setpoint: setpointEntity?.attributes?.temperature || null,
-        available: !!(tempEntity || pressureEntity || statusEntity)
-      });
+    const fetchBoilerData = async () => {
+      try {
+        const response = await fetch(BOILER_API_URL);
+        const data = await response.json();
+        
+        if (data && data.live) {
+          setBoilerData({
+            temperature: parseFloat(data.live.temp),
+            status: data.live.status || 'unknown',
+            bottomAir: parseFloat(data.live.Bottom_Air),
+            topAir: parseFloat(data.live.Top_Air),
+            o2: parseFloat(data.live.O2),
+            available: true,
+            connected: true
+          });
+        } else {
+          setBoilerData(prev => ({ ...prev, available: false, connected: false }));
+        }
+      } catch (error) {
+        console.warn('Boiler API fetch error:', error);
+        setBoilerData(prev => ({ ...prev, available: false, connected: false }));
+      }
     };
 
-    updateBoilerData();
+    // Initial fetch
+    fetchBoilerData();
     
-    // Update every 10 seconds when connected
-    const interval = setInterval(updateBoilerData, 10000);
+    // Update every 10 seconds
+    const interval = setInterval(fetchBoilerData, 10000);
 
     return () => clearInterval(interval);
-  }, [connected, getEntity]);
+  }, []);
 
-  return {
-    ...boilerData,
-    connected
-  };
+  return boilerData;
 };

@@ -1,326 +1,150 @@
-import { useState, useEffect } from 'react';
-import { bisonTheme } from './theme-bison';
-import { useBoilerData } from './hooks/useBoilerData';
-import { useWeather } from './hooks/useWeather';
+import { useState, useEffect } from 'react'
+import QuickLaunch from './components/QuickLaunch'
 
 function App() {
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const boiler = useBoilerData();
-  const weather = useWeather();
+  const [timeString, setTimeString] = useState('')
+  const [dateString, setDateString] = useState('')
+  const [weather, setWeather] = useState({ temperature: null, available: false })
+  const [boiler, setBoiler] = useState({ temperature: null, available: false })
 
-  // Update clock every second
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+    const updateTime = () => {
+      const now = new Date()
+      setTimeString(now.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true 
+      }))
+      setDateString(now.toLocaleDateString('en-US', { 
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }))
+    }
+    updateTime()
+    const interval = setInterval(updateTime, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
-  const timeString = currentTime.toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
-    minute: '2-digit',
-    second: '2-digit'
-  });
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        const response = await fetch('/ha-api/states/sensor.the_lodge_sensors_temperature')
+        if (response.ok) {
+          const data = await response.json()
+          const temp = Math.round(parseFloat(data.state))
+          setWeather({ temperature: temp, available: true })
+          console.log('Weather:', temp)
+        }
+      } catch (e) {
+        console.log('Weather error:', e)
+        setWeather({ temperature: null, available: false })
+      }
+    }
 
-  const dateString = currentTime.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  });
+    const fetchBoiler = async () => {
+      try {
+        const response = await fetch('http://10.0.101.98:5000')
+        if (response.ok) {
+          const data = await response.json()
+          const temp = Math.round(parseFloat(data.live.temp))
+          setBoiler({ temperature: temp, available: true })
+          console.log('Boiler:', temp)
+        }
+      } catch (e) {
+        console.log('Boiler error:', e)
+        setBoiler({ temperature: null, available: false })
+      }
+    }
 
-  const apps = [
-    { name: 'Unraid', url: 'http://10.0.101.3', icon: '🖥️' },
-    { name: 'Portainer', url: 'http://10.0.101.50:9000', icon: '🐳' },
-    { name: 'Home Assistant', url: 'http://10.0.102.10:8123', icon: '🏠' },
-    { name: 'Command Center', url: 'http://10.0.101.55', icon: '🎛️' },
-    { name: 'Dashboards', url: 'http://10.0.101.63:3000', icon: '📊' },
-    { name: 'Music', url: 'http://10.0.101.56', icon: '🎵' },
-    { name: 'AdGuard', url: 'http://10.0.101.51:3000', icon: '🛡️' },
-    { name: 'NPM', url: 'http://10.0.101.70:81', icon: '🔀' },
-    { name: 'GitHub', url: 'https://github.com', icon: '💻', external: true },
-  ];
+    fetchWeather()
+    fetchBoiler()
+    const interval = setInterval(() => {
+      fetchWeather()
+      fetchBoiler()
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
-    <div style={{ 
-      backgroundColor: bisonTheme.colors.background,
-      color: bisonTheme.colors.text,
-      minHeight: '100vh',
-      padding: '2rem',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+    <div className="min-h-screen text-white p-8" style={{
+      background: 'linear-gradient(135deg, #FFC72C 0%, #1a5c3a 50%, #0a4d2e 100%)'
     }}>
-      {/* Bison Header */}
-      <div style={{
-        background: `linear-gradient(135deg, ${bisonTheme.colors.green} 0%, ${bisonTheme.colors.yellow} 100%)`,
-        borderRadius: bisonTheme.borderRadius.xl,
-        padding: '2rem',
-        marginBottom: '2rem',
-        boxShadow: bisonTheme.shadows.bison,
-        textAlign: 'center'
-      }}>
-        <h1 style={{
-          fontSize: '3rem',
-          fontWeight: 'bold',
-          letterSpacing: '0.2em',
-          margin: 0,
-          color: bisonTheme.colors.background,
-          textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
-        }}>
+      <div className="max-w-7xl mx-auto">
+        
+      <div className="relative text-center mb-12 py-12">
+        {/* CORN ON LEFT SIDE - LOCKED IN STONE */}
+        <div className="absolute top-4 left-4 text-7xl opacity-60 animate-bounce-slow" style={{filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))'}}>🌽</div>
+        <div className="absolute top-24 left-12 text-6xl opacity-50 animate-bounce-slow" style={{animationDelay: '0.3s', filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))'}}>🌽</div>
+        <div className="absolute bottom-8 left-8 text-6xl opacity-50 animate-bounce-slow" style={{animationDelay: '0.6s', filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))'}}>🌽</div>
+        
+        {/* WHEAT ON RIGHT SIDE - LOCKED IN STONE */}
+        <div className="absolute top-4 right-4 text-7xl opacity-60 animate-bounce-slow" style={{animationDelay: '0.5s', filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))'}}>🌾</div>
+        <div className="absolute top-24 right-12 text-6xl opacity-50 animate-bounce-slow" style={{animationDelay: '0.2s', filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))'}}>🌾</div>
+        <div className="absolute bottom-8 right-8 text-6xl opacity-50 animate-bounce-slow" style={{animationDelay: '0.4s', filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))'}}>🌾</div>
+        
+        <h1 className="text-8xl font-black tracking-[0.3em] text-bison-dark drop-shadow-2xl funky-font mb-4">
           HORNS UP 🦬
         </h1>
-        <div style={{
-          fontSize: '1.2rem',
-          marginTop: '0.5rem',
-          color: bisonTheme.colors.background,
-          opacity: 0.9
-        }}>
-          The Lodge Command Center
-        </div>
+        <div className="text-3xl mt-2 text-bison-dark opacity-90 font-bold">The Lodge Command Center</div>
       </div>
 
-      {/* Clock & Date */}
-      <div style={{
-        backgroundColor: bisonTheme.colors.card,
-        borderRadius: bisonTheme.borderRadius.lg,
-        padding: '2rem',
-        marginBottom: '2rem',
-        textAlign: 'center',
-        border: `2px solid ${bisonTheme.colors.yellow}`,
-      }}>
-        <div style={{
-          fontSize: '4rem',
-          fontWeight: 'bold',
-          color: bisonTheme.colors.yellow,
-          marginBottom: '0.5rem',
-          fontFamily: 'monospace'
-        }}>
-          {timeString}
-        </div>
-        <div style={{
-          fontSize: '1.2rem',
-          color: bisonTheme.colors.textDim
-        }}>
-          {dateString}
-        </div>
+      <div className="bg-bison-card rounded-xl p-8 mb-8 text-center border-2 border-bison-yellow">
+        <div className="text-6xl font-bold text-bison-yellow mb-2 font-mono">{timeString}</div>
+        <div className="text-xl text-gray-400">{dateString}</div>
       </div>
 
-      {/* Temperature Display - THE WORKING PART! */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: '1rem',
-        marginBottom: '2rem'
-      }}>
-        {/* Boiler Temperature */}
-        <div style={{
-          backgroundColor: bisonTheme.colors.card,
-          borderRadius: bisonTheme.borderRadius.lg,
-          padding: '1.5rem',
-          border: `2px solid ${boiler.available ? bisonTheme.colors.success : bisonTheme.colors.error}`,
-        }}>
-          <div style={{ 
-            fontSize: '0.9rem', 
-            color: bisonTheme.colors.textDim,
-            marginBottom: '0.5rem'
-          }}>
-            🔥 Boiler Temperature
-          </div>
-          {boiler.available ? (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className={`bg-bison-card rounded-xl p-6 border-2 ${boiler.available ? 'border-green-500' : 'border-red-500'}`}>
+          <div className="text-sm text-gray-400 mb-2">🔥 Boiler Temperature</div>
+          {boiler.available && boiler.temperature ? (
             <>
-              <div style={{
-                fontSize: '2.5rem',
-                fontWeight: 'bold',
-                color: bisonTheme.colors.yellow
-              }}>
-                {boiler.temperature ? `${boiler.temperature}°F` : '--'}
+              <div className="text-4xl font-bold text-bison-yellow">
+                {boiler.temperature}°F
               </div>
-              {boiler.status && (
-                <div style={{
-                  fontSize: '0.8rem',
-                  color: boiler.status === 'running' ? bisonTheme.colors.success : bisonTheme.colors.textDim,
-                  marginTop: '0.5rem'
-                }}>
-                  Status: {boiler.status}
-                </div>
-              )}
+              <div className="text-xs text-gray-500 mt-2">HeatMaster SS Pro</div>
             </>
           ) : (
-            <div style={{
-              fontSize: '1.2rem',
-              color: bisonTheme.colors.textMuted
-            }}>
-              Connecting to HA...
-            </div>
+            <div className="text-xl text-red-400">Unavailable</div>
           )}
         </div>
 
-        {/* Outside Temperature */}
-        <div style={{
-          backgroundColor: bisonTheme.colors.card,
-          borderRadius: bisonTheme.borderRadius.lg,
-          padding: '1.5rem',
-          border: `2px solid ${weather.available ? bisonTheme.colors.info : bisonTheme.colors.error}`,
-        }}>
-          <div style={{ 
-            fontSize: '0.9rem', 
-            color: bisonTheme.colors.textDim,
-            marginBottom: '0.5rem'
-          }}>
-            🌡️ Outside Temperature
-          </div>
-          {weather.available ? (
+        <div className={`bg-bison-card rounded-xl p-6 border-2 ${weather.available ? 'border-green-500' : 'border-red-500'}`}>
+          <div className="text-sm text-gray-400 mb-2">🌡️ Outdoor Temperature</div>
+          {weather.available && weather.temperature ? (
             <>
-              <div style={{
-                fontSize: '2.5rem',
-                fontWeight: 'bold',
-                color: bisonTheme.colors.green
-              }}>
-                {weather.temperature ? `${weather.temperature}°F` : '--'}
+              <div className="text-4xl font-bold text-bison-yellow">
+                {weather.temperature}°F
               </div>
-              {weather.conditions && (
-                <div style={{
-                  fontSize: '0.8rem',
-                  color: bisonTheme.colors.textDim,
-                  marginTop: '0.5rem'
-                }}>
-                  {weather.conditions}
-                </div>
-              )}
+              <div className="text-xs text-gray-500 mt-2">WeatherFlow Tempest</div>
             </>
           ) : (
-            <div style={{
-              fontSize: '1.2rem',
-              color: bisonTheme.colors.textMuted
-            }}>
-              Loading weather...
-            </div>
+            <div className="text-xl text-red-400">Unavailable</div>
           )}
         </div>
 
-        {/* Connection Status */}
-        <div style={{
-          backgroundColor: bisonTheme.colors.card,
-          borderRadius: bisonTheme.borderRadius.lg,
-          padding: '1.5rem',
-          border: `2px solid ${bisonTheme.colors.yellow}`,
-        }}>
-          <div style={{ 
-            fontSize: '0.9rem', 
-            color: bisonTheme.colors.textDim,
-            marginBottom: '0.5rem'
-          }}>
-            🔌 System Status
-          </div>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-            fontSize: '0.9rem'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{
-                width: '10px',
-                height: '10px',
-                borderRadius: '50%',
-                backgroundColor: boiler.connected ? bisonTheme.colors.success : bisonTheme.colors.error,
-                display: 'inline-block'
-              }}></span>
-              Home Assistant {boiler.connected ? 'Connected' : 'Disconnected'}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{
-                width: '10px',
-                height: '10px',
-                borderRadius: '50%',
-                backgroundColor: boiler.available ? bisonTheme.colors.success : bisonTheme.colors.warning,
-                display: 'inline-block'
-              }}></span>
-              Boiler Data {boiler.available ? 'Available' : 'Unavailable'}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{
-                width: '10px',
-                height: '10px',
-                borderRadius: '50%',
-                backgroundColor: weather.available ? bisonTheme.colors.success : bisonTheme.colors.warning,
-                display: 'inline-block'
-              }}></span>
-              Weather Data {weather.available ? 'Available' : 'Unavailable'}
-            </div>
-          </div>
+        <div className="bg-bison-card rounded-xl p-6 border-2 border-bison-yellow">
+          <div className="text-sm text-gray-400 mb-2">🦬 System Status</div>
+          <div className="text-4xl font-bold text-green-500">ALL GOOD</div>
+          <div className="text-xs text-gray-500 mt-2">Command Center Online</div>
         </div>
       </div>
 
-      {/* Quick Launch Apps */}
-      <div style={{
-        backgroundColor: bisonTheme.colors.card,
-        borderRadius: bisonTheme.borderRadius.lg,
-        padding: '1.5rem',
-        marginBottom: '2rem',
-      }}>
-        <h2 style={{
-          fontSize: '1.5rem',
-          color: bisonTheme.colors.yellow,
-          marginBottom: '1rem',
-          borderBottom: `2px solid ${bisonTheme.colors.green}`,
-          paddingBottom: '0.5rem'
-        }}>
-          Quick Launch
-        </h2>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-          gap: '0.75rem'
-        }}>
-          {apps.map(app => (
-            <a
-              key={app.name}
-              href={app.url}
-              target={app.external ? '_blank' : '_self'}
-              rel={app.external ? 'noopener noreferrer' : ''}
-              style={{
-                backgroundColor: bisonTheme.colors.background,
-                border: `2px solid ${bisonTheme.colors.border}`,
-                borderRadius: bisonTheme.borderRadius.md,
-                padding: '1rem',
-                textDecoration: 'none',
-                color: bisonTheme.colors.text,
-                textAlign: 'center',
-                transition: 'all 0.2s',
-                cursor: 'pointer'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = bisonTheme.colors.yellow;
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = bisonTheme.shadows.bison;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = bisonTheme.colors.border;
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            >
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
-                {app.icon}
-              </div>
-              <div style={{ fontSize: '0.9rem', fontWeight: '500' }}>
-                {app.name}
-              </div>
-            </a>
-          ))}
-        </div>
+      <QuickLaunch />
+
+      {/* STEALTH PAGE SWITCHER */}
+      <div className="text-center mt-8 mb-4">
+        <span className="text-xs text-gray-300">Go Bison · Est. 2026 · </span>
+        <a href="/basket/" className="text-xs text-bison-yellow hover:text-yellow-300 transition-colors font-bold">
+          🧺
+        </a>
       </div>
 
-      {/* Footer */}
-      <div style={{
-        textAlign: 'center',
-        color: bisonTheme.colors.textMuted,
-        fontSize: '0.9rem',
-        paddingTop: '2rem',
-        borderTop: `1px solid ${bisonTheme.colors.border}`
-      }}>
-        GO BISON! 🦬 | The Lodge Infrastructure | React + Vite + Live Data
       </div>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
