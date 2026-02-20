@@ -28,6 +28,7 @@ function QuickLaunch() {
   const [editingTab, setEditingTab] = useState(null);
   const [newTabName, setNewTabName] = useState('');
   const [newSite, setNewSite] = useState({ name: '', url: '', icon: '🔗' });
+  const [editingSite, setEditingSite] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('quicklaunch-tabs', JSON.stringify(tabs));
@@ -73,6 +74,31 @@ function QuickLaunch() {
       [activeTab]: [...(tabs[activeTab] || []), { ...newSite }]
     });
     setNewSite({ name: '', url: '', icon: '🔗' });
+  };
+
+  const startEditSite = (tabName, index) => {
+    const site = tabs[tabName][index];
+    setNewSite({ ...site });
+    setEditingSite({ tabName, index });
+  };
+
+  const saveEditSite = () => {
+    if (!editingSite) return;
+    const updatedTabs = {
+      ...tabs,
+      [editingSite.tabName]: tabs[editingSite.tabName].map((site, idx) =>
+        idx === editingSite.index ? newSite : site
+      ),
+    };
+    setTabs(updatedTabs);
+    localStorage.setItem("quicklaunch-tabs", JSON.stringify(updatedTabs));
+    setNewSite({ name: "", url: "", icon: "🔗" });
+    setEditingSite(null);
+  };
+
+  const cancelEdit = () => {
+    setNewSite({ name: "", url: "", icon: "🔗" });
+    setEditingSite(null);
   };
 
   const deleteSite = (tabName, index) => {
@@ -195,12 +221,22 @@ function QuickLaunch() {
               <div className="text-sm font-medium">{app.name}</div>
             </a>
             {isManaging && (
-              <button
-                onClick={() => deleteSite(activeTab, index)}
-                className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                ❌
-              </button>
+              <div className="absolute -top-2 -right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => startEditSite(activeTab, index)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
+                  title="Edit site"
+                >
+                  ✏️
+                </button>
+                <button
+                  onClick={() => deleteSite(activeTab, index)}
+                  className="bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
+                  title="Delete site"
+                >
+                  ❌
+                </button>
+              </div>
             )}
           </div>
         ))}
@@ -209,7 +245,7 @@ function QuickLaunch() {
       {/* Add Site Form */}
       {isManaging && (
         <div className="bg-bison-dark rounded-lg p-4 border-2 border-bison-green">
-          <h3 className="text-lg text-bison-yellow mb-3">Add Site to "{activeTab}"</h3>
+          <h3 className="text-lg text-bison-yellow mb-3">{editingSite ? `Edit Site in "${activeTab}"` : `Add Site to "${activeTab}"`}</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <input
               type="text"
@@ -234,12 +270,29 @@ function QuickLaunch() {
               title="Press Windows + . for emoji picker"
               maxLength="10"
             />
-            <button
-              onClick={addSite}
-              className="px-4 py-2 rounded-lg bg-bison-yellow text-bison-dark font-bold hover:bg-yellow-400 transition-all"
-            >
-              ➕ Add Site
-            </button>
+            {editingSite ? (
+              <>
+                <button
+                  onClick={saveEditSite}
+                  className="px-4 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all"
+                >
+                  💾 Save Changes
+                </button>
+                <button
+                  onClick={cancelEdit}
+                  className="px-4 py-2 rounded-lg bg-gray-600 text-white font-bold hover:bg-gray-700 transition-all"
+                >
+                  ❌ Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={addSite}
+                className="px-4 py-2 rounded-lg bg-bison-yellow text-bison-dark font-bold hover:bg-yellow-400 transition-all"
+              >
+                ➕ Add Site
+              </button>
+            )}
           </div>
         </div>
       )}
