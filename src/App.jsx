@@ -88,7 +88,6 @@ function App() {
         <h1 className="text-8xl font-black tracking-[0.3em] text-bison-dark drop-shadow-2xl funky-font mb-4">
           HORNS UP 🦬
         </h1>
-        <div className="text-3xl mt-2 text-bison-dark opacity-90 font-bold">The Lodge Command Center</div>
       </div>
 
       <div className="bg-bison-card rounded-xl p-8 mb-8 text-center border-2 border-bison-yellow">
