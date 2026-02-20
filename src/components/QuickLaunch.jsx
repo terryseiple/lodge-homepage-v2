@@ -100,20 +100,9 @@ function QuickLaunch() {
   const cancelEdit = () => {
 
   const moveSite = (fromTab, index, toTab) => {
+    console.log("MOVE FUNCTION CALLED:", {fromTab, index, toTab});
     if (fromTab === toTab) {
 
-  const moveSite = (fromTab, index, toTab) => {
-    const site = tabs[fromTab][index];
-    const updatedTabs = {
-      ...tabs,
-      [fromTab]: tabs[fromTab].filter((_, idx) => idx !== index),
-      [toTab]: [...tabs[toTab], site],
-    };
-    setTabs(updatedTabs);
-    localStorage.setItem("quicklaunch-tabs", JSON.stringify(updatedTabs));
-    setMovingSite(null);
-  };
-      setMovingSite(null);
       return;
     }
     const site = tabs[fromTab][index];
@@ -196,7 +185,7 @@ function QuickLaunch() {
               </button>
             )}
             {isManaging && (
-              <div className="absolute -top-2 -right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute -top-2 -right-2 flex gap-1 opacity-100 transition-opacity">
                 <button
                   onClick={() => setEditingTab(tabName)}
                   className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-6 h-6 text-xs"
@@ -250,7 +239,7 @@ function QuickLaunch() {
               <div className="text-sm font-medium">{app.name}</div>
             </a>
             {isManaging && (
-              <div className="absolute -top-2 -right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute -top-2 -right-2 flex gap-1 opacity-100 transition-opacity">
                 <button
                   onClick={() => startEditSite(activeTab, index)}
                   className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
