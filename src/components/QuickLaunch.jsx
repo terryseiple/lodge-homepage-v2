@@ -29,6 +29,7 @@ function QuickLaunch() {
   const [newTabName, setNewTabName] = useState('');
   const [newSite, setNewSite] = useState({ name: '', url: '', icon: '🔗' });
   const [editingSite, setEditingSite] = useState(null);
+  const [movingSite, setMovingSite] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('quicklaunch-tabs', JSON.stringify(tabs));
@@ -97,6 +98,22 @@ function QuickLaunch() {
   };
 
   const cancelEdit = () => {
+
+  const moveSite = (fromTab, index, toTab) => {
+    if (fromTab === toTab) {
+      setMovingSite(null);
+      return;
+    }
+    const site = tabs[fromTab][index];
+    const updatedTabs = {
+      ...tabs,
+      [fromTab]: tabs[fromTab].filter((_, idx) => idx !== index),
+      [toTab]: [...tabs[toTab], site],
+    };
+    setTabs(updatedTabs);
+    localStorage.setItem("quicklaunch-tabs", JSON.stringify(updatedTabs));
+    setMovingSite(null);
+  };
     setNewSite({ name: "", url: "", icon: "🔗" });
     setEditingSite(null);
   };
@@ -229,6 +246,28 @@ function QuickLaunch() {
                 >
                   ✏️
                 </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setMovingSite(movingSite?.tabName === activeTab && movingSite?.index === index ? null : { tabName: activeTab, index })}
+                    className="bg-purple-600 hover:bg-purple-700 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
+                    title="Move to another tab"
+                  >
+                    🔀
+                  </button>
+                  {movingSite?.tabName === activeTab && movingSite?.index === index && (
+                    <div className="absolute top-8 right-0 bg-bison-dark border-2 border-bison-yellow rounded-lg shadow-lg p-2 z-50 min-w-[120px]">
+                      {Object.keys(tabs).filter(tab => tab !== activeTab).map(tab => (
+                        <button
+                          key={tab}
+                          onClick={() => moveSite(activeTab, index, tab)}
+                          className="block w-full text-left px-3 py-1 hover:bg-bison-yellow hover:text-bison-dark rounded text-sm whitespace-nowrap"
+                        >
+                          📍 {tab}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={() => deleteSite(activeTab, index)}
                   className="bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
