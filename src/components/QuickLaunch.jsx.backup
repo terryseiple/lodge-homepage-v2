@@ -28,8 +28,8 @@ function QuickLaunch() {
   const [editingTab, setEditingTab] = useState(null);
   const [newTabName, setNewTabName] = useState('');
   const [newSite, setNewSite] = useState({ name: '', url: '', icon: '🔗' });
-  const [movingSite, setMovingSite] = useState(null);
   const [editingSite, setEditingSite] = useState(null);
+  const [movingSite, setMovingSite] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('quicklaunch-tabs', JSON.stringify(tabs));
@@ -101,18 +101,6 @@ function QuickLaunch() {
 
   const moveSite = (fromTab, index, toTab) => {
     if (fromTab === toTab) {
-
-  const moveSite = (fromTab, index, toTab) => {
-    const site = tabs[fromTab][index];
-    const updatedTabs = {
-      ...tabs,
-      [fromTab]: tabs[fromTab].filter((_, idx) => idx !== index),
-      [toTab]: [...tabs[toTab], site],
-    };
-    setTabs(updatedTabs);
-    localStorage.setItem("quicklaunch-tabs", JSON.stringify(updatedTabs));
-    setMovingSite(null);
-  };
       setMovingSite(null);
       return;
     }
@@ -258,13 +246,28 @@ function QuickLaunch() {
                 >
                   ✏️
                 </button>
-                <button
-                  onClick={() => setMovingSite({tab: activeTab, idx: index})}
-                  className="bg-purple-600 hover:bg-purple-700 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
-                  title="Move to another tab"
-                >
-                  🔀
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setMovingSite(movingSite?.tabName === activeTab && movingSite?.index === index ? null : { tabName: activeTab, index })}
+                    className="bg-purple-600 hover:bg-purple-700 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
+                    title="Move to another tab"
+                  >
+                    🔀
+                  </button>
+                  {movingSite?.tabName === activeTab && movingSite?.index === index && (
+                    <div className="absolute top-8 right-0 bg-bison-dark border-2 border-bison-yellow rounded-lg shadow-lg p-2 z-50 min-w-[120px]">
+                      {Object.keys(tabs).filter(tab => tab !== activeTab).map(tab => (
+                        <button
+                          key={tab}
+                          onClick={() => moveSite(activeTab, index, tab)}
+                          className="block w-full text-left px-3 py-1 hover:bg-bison-yellow hover:text-bison-dark rounded text-sm whitespace-nowrap"
+                        >
+                          📍 {tab}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={() => deleteSite(activeTab, index)}
                   className="bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
@@ -334,34 +337,6 @@ function QuickLaunch() {
       )}
     </div>
   );
-
-      {/* Move Modal */}
-      {movingSite && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center" 
-          onClick={() => setMovingSite(null)}
-        >
-          <div 
-            className="bg-bison-dark border-4 border-bison-yellow rounded-xl p-6 shadow-2xl max-w-md" 
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-xl text-bison-yellow mb-4 font-bold">
-              Move "{tabs[movingSite.tab]?.[movingSite.idx]?.name}" to:
-            </h3>
-            <div className="flex flex-col gap-2">
-              {Object.keys(tabs).filter(t => t !== movingSite.tab).map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => moveSite(movingSite.tab, movingSite.idx, tab)}
-                  className="px-6 py-3 bg-bison-green text-white rounded-lg hover:bg-bison-yellow hover:text-bison-dark font-bold transition-all text-lg"
-                >
-                  📍 {tab}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 }
 
 export default QuickLaunch;
