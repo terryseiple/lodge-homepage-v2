@@ -136,7 +136,7 @@ function QuickLaunch() {
   return (
     <div className="bg-bison-card rounded-xl p-6 mb-8">
       <div className="flex justify-between items-center mb-4 pb-2 border-b-2 border-bison-green">
-        <h2 className="text-2xl text-bison-yellow">Quick Launch</h2>
+        <h2 className="text-2xl text-bison-yellow">Playbook</h2>
         <div className="flex gap-2">
           <button
             onClick={() => setIsManaging(!isManaging)}
