@@ -92,19 +92,18 @@ function QuickLaunch() {
       ),
     };
     setTabs(updatedTabs);
-    localStorage.setItem("quicklaunch-tabs", JSON.stringify(updatedTabs));
-    setNewSite({ name: "", url: "", icon: "🔗" });
+    setNewSite({ name: '', url: '', icon: '🔗' });
     setEditingSite(null);
   };
 
   const cancelEdit = () => {
+    setNewSite({ name: '', url: '', icon: '🔗' });
+    setEditingSite(null);
+  };
 
   const moveSite = (fromTab, index, toTab) => {
-    console.log("MOVE FUNCTION CALLED:", {fromTab, index, toTab});
-    if (fromTab === toTab) {
-
-      return;
-    }
+    console.log('MOVE FUNCTION CALLED:', { fromTab, index, toTab });
+    if (fromTab === toTab) return;
     const site = tabs[fromTab][index];
     const updatedTabs = {
       ...tabs,
@@ -112,11 +111,7 @@ function QuickLaunch() {
       [toTab]: [...tabs[toTab], site],
     };
     setTabs(updatedTabs);
-    localStorage.setItem("quicklaunch-tabs", JSON.stringify(updatedTabs));
     setMovingSite(null);
-  };
-    setNewSite({ name: "", url: "", icon: "🔗" });
-    setEditingSite(null);
   };
 
   const deleteSite = (tabName, index) => {
@@ -248,7 +243,7 @@ function QuickLaunch() {
                   ✏️
                 </button>
                 <button
-                  onClick={() => setMovingSite({tab: activeTab, idx: index})}
+                  onClick={() => setMovingSite({ tab: activeTab, idx: index })}
                   className="bg-purple-600 hover:bg-purple-700 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
                   title="Move to another tab"
                 >
@@ -267,10 +262,12 @@ function QuickLaunch() {
         ))}
       </div>
 
-      {/* Add Site Form */}
+      {/* Add/Edit Site Form */}
       {isManaging && (
         <div className="bg-bison-dark rounded-lg p-4 border-2 border-bison-green">
-          <h3 className="text-lg text-bison-yellow mb-3">{editingSite ? `Edit Site in "${activeTab}"` : `Add Site to "${activeTab}"`}</h3>
+          <h3 className="text-lg text-bison-yellow mb-3">
+            {editingSite ? `Edit Site in "${activeTab}"` : `Add Site to "${activeTab}"`}
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <input
               type="text"
@@ -296,20 +293,20 @@ function QuickLaunch() {
               maxLength="10"
             />
             {editingSite ? (
-              <>
+              <div className="flex gap-2">
                 <button
                   onClick={saveEditSite}
-                  className="px-4 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all"
+                  className="flex-1 px-4 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all"
                 >
-                  💾 Save Changes
+                  💾 Save
                 </button>
                 <button
                   onClick={cancelEdit}
-                  className="px-4 py-2 rounded-lg bg-gray-600 text-white font-bold hover:bg-gray-700 transition-all"
+                  className="flex-1 px-4 py-2 rounded-lg bg-gray-600 text-white font-bold hover:bg-gray-700 transition-all"
                 >
                   ❌ Cancel
                 </button>
-              </>
+              </div>
             ) : (
               <button
                 onClick={addSite}
@@ -321,8 +318,6 @@ function QuickLaunch() {
           </div>
         </div>
       )}
-    </div>
-  );
 
       {/* Move Modal */}
       {movingSite && (
@@ -348,9 +343,17 @@ function QuickLaunch() {
                 </button>
               ))}
             </div>
+            <button
+              onClick={() => setMovingSite(null)}
+              className="mt-4 w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-all"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
+    </div>
+  );
 }
 
 export default QuickLaunch;
